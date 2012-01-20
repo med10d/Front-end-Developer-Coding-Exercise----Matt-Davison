@@ -1,0 +1,4 @@
+Date:   1/19/12
+Author: Matt Davison
+
+This coding exercise is an Accordion widget implemented in Javascript.  The widget does not use JQuery.  The code uses AJAX to access a server-side PHP script that provides the current date and time.
