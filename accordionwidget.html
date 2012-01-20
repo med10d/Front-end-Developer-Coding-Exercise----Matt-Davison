@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<head>
+<title>Front-end Developer Coding Exercise: JavaScript Accordion widget</title>
+<link href="styles.css" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript">
+
+var NORMAL_PANEL    = "panel";
+var COLLAPSED_PANEL = "collapsedpanel";
+var PANEL_HEADING   = "h2";
+var PANEL_CONTENT   = "panelcontent";
+var PANEL_COOKIE    = "panels";
+var ANIMATION_DELAY = 20; // ms
+var ANIMATION_STEPS = 10;
+
+var closingWindows = false;
+var initialized = false;
+var topPaneSet = false;
+
+// Arrange the panels' layouts.
+function arrangePanels()
+{
+  // Load the settings for the panels from cookies.
+  loadPanelSettings();
+
+  // Get all heading names.
+  var headingNames = document.getElementsByTagName(PANEL_HEADING);
+
+  // Go through all panel tags, initializing each panel.
+  for (var i=0; i<headingNames.length; i++)
+  {
+    var element = headingNames[i];
+  	
+    // Make sure that the clicked object is a heading inside a panel.
+    if (element.parentNode.className != NORMAL_PANEL && element.parentNode.className != COLLAPSED_PANEL)
+	    continue;
+  	
+    // Get the text of the tag.
+    var name = element.firstChild.nodeValue;
+
+    // Look for the name in the loaded settings.  Apply the normal/panelIsCollapsed class.
+    if (panelState[name] == "false")
+	    element.parentNode.className = COLLAPSED_PANEL;
+    else
+    if (panelState[name] == "true")
+	    element.parentNode.className = NORMAL_PANEL;
+    else
+    {
+	    // If no setting is saved, set the initial setting.
+	    panelState[name] = (element.parentNode.className == NORMAL_PANEL) ? "true" : "false";
+    }
+
+    // Add the click behavior to the heading.
+    element.onclick = function() 
+    {                        
+      var clickedPanel = this.parentNode;
+      var name = this.firstChild.nodeValue;			
+
+      // Proceed with click if panel is collapsed, or if panels are being closed.
+      var panelIsCollapsed = (clickedPanel.className == COLLAPSED_PANEL);
+      if ( (panelIsCollapsed == true  && closingWindows == false) || 
+           (panelIsCollapsed == false && closingWindows == true) )
+      {
+        if (closingWindows == false)
+        {
+          // Get date and time dynamically using AJAX and php script.
+          getDateAndTime(name);
+
+          // Close all open windows.
+          closingWindows = true;
+          arrangePanels();
+          closingWindows = false;
+        }
+        // Open the clicked panel.
+        savePanelSettings(name, panelIsCollapsed?"true":"false");
+        animatePanel(clickedPanel, panelIsCollapsed);
+      }
+    };
+    // If the webpage has been initialized, the following onclick will closed
+    // any open windows.
+    if (initialized == true)
+      element.onclick();
+
+  } // for (var i=0; i<headingNames.length; i++)
+
+  if (initialized == false)
+  {
+    initialized = true;				        	
+    
+    // Start the top panel as open, and all other panels as closed.
+    savePanelSettings(0, "true");
+    getDateAndTime("Section One");
+
+    savePanelSettings(1, "false");
+    savePanelSettings(2, "false");
+    savePanelSettings(3, "false");
+  }
+} // function arrangePanels()
+
+function animatePanel(panel, expanding)
+{
+  // Find the .panelcontent div.
+  var elements = panel.getElementsByTagName("div");
+  var panelContent = null;
+  for (var i=0; i<elements.length; i++)
+  {
+    if (elements[i].className == PANEL_CONTENT)
+    {
+      panelContent = elements[i];
+      break;
+    }
+  }
+
+  // Make the content visible before getting the height value.
+  panelContent.style.display = "block";
+
+  // Get height of the panel content.
+  var contentHeight = panelContent.offsetHeight;
+
+  // If the panel is collapsed and expanding, start with height of 0.
+  if (expanding)
+    panelContent.style.height = "0px";
+
+  var stepHeight = contentHeight / ANIMATION_STEPS;
+  var direction = (!expanding ? -1 : 1);
+
+  setTimeout(function(){animateStep(panelContent,1,stepHeight,direction)}, ANIMATION_DELAY);
+} // function animatePanel(panel, expanding)
+
+// Gradually change the height of the panel.
+function animateStep(panelContent, iteration, stepHeight, direction)
+{
+  if (iteration<ANIMATION_STEPS)
+  {
+    panelContent.style.height = Math.round(((direction>0) ? iteration : 10 - iteration) * stepHeight) +"px";
+    iteration++;
+    setTimeout(function(){animateStep(panelContent,iteration,stepHeight,direction)}, ANIMATION_DELAY);
+  }
+  else
+  {
+    // Set the class for the panel.
+    panelContent.parentNode.className = (direction<0) ? COLLAPSED_PANEL : NORMAL_PANEL;
+    panelContent.style.display = panelContent.style.height = "";
+  }
+}
+
+// Load the settings for the panel from memory stored in cookies.
+function loadPanelSettings()
+{
+  // panelState keeps infomration on the panel states.
+  panelState = {};
+
+  // Find the name of the cookie.
+  var start = document.cookie.indexOf(PANEL_COOKIE + "=");
+  if (start == -1 || initialized == false) 
+    return;
+
+  // This is the starting point of the cookie value.
+  start += PANEL_COOKIE.length+1;
+
+  // Find the end point of the cookie's value.
+  var end = document.cookie.indexOf(";", start);
+  if (end == -1) 
+    end = document.cookie.length;
+
+  // Get the value of the cookie, and split it into key:value pairs.
+  var cookieValue = unescape(document.cookie.substring(start, end));
+  var panelsData = cookieValue.split("|");
+
+  // Split each of the key:value pairs and put them in the object.
+  for (var i=0; i< panelsData.length; i++)
+  {
+    var pair = panelsData[i].split(":");
+    panelState[pair[0]] = pair[1];
+  }
+} // function loadPanelSettings()
+
+// Save the panel information in cookies on user's browser.
+function savePanelSettings(key, value)
+{
+  // Put new value in the object.
+  panelState[key] = value;
+
+  // Create array to keep the key:value pairs.
+  var panelsData = [];
+  for (var key in panelState)
+	  panelsData.push(key+":"+panelState[key]);
+  	
+  // Set cookie expiration date.
+  var cookieStart = new Date();
+  var cookieExpiration = new Date(cookieStart.getTime() + 365 * 1000 * 60 * 60 * 24);
+
+  // Write cookie to memory.
+  document.cookie = PANEL_COOKIE + "=" + escape(panelsData.join("|")) + ";expires=" + cookieExpiration.toGMTString();
+}
+
+
+// Register arrangePanels to be executed on load.
+if (window.addEventListener)
+{
+  // Most browsers will accept this command.
+  window.addEventListener("load", arrangePanels, false);
+}
+else if (window.attachEvent)
+{
+  // Some versions of Internet Explorer require this load method.
+  window.attachEvent("onload", arrangePanels);
+}
+
+// Use AJAX to get the date and time dynamically from a PHP script.
+function getDateAndTime(name)
+{
+  var xmlhttp;
+  if (window.XMLHttpRequest)
+  {
+    // Works for IE7+, Firefox, Chrome, Opera, Safari.
+    xmlhttp=new XMLHttpRequest();
+  }
+  else
+  {
+    // Works for IE6, IE5.
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+  }
+  xmlhttp.onreadystatechange=function()
+  {
+    if (xmlhttp.readyState==4 && xmlhttp.status==200)
+    {
+      document.getElementById(name + " Time").innerHTML=xmlhttp.responseText;
+    }
+  }
+  xmlhttp.open("GET","dateandtime.php?" + Math.random(), true);
+  xmlhttp.send();
+}
+
+</script>
+</head>
+
+<body>
+<div class="panel">
+  <h2>Section One</h2>
+  <div class="panelcontent">
+	<p>&nbsp The time is now: <span id="Section One Time"></span></p>
+  </div>
+</div>
+
+<div class="collapsedpanel">
+  <h2>Section Two</h2>
+  <div class="panelcontent">
+	<p>&nbsp The time is now: <span id="Section Two Time"></span></p>
+  </div>
+</div>
+
+<div class="collapsedpanel">
+  <h2>Section Three</h2>
+  <div class="panelcontent">
+	<p>&nbsp The time is now: <span id="Section Three Time"></span></p>
+  </div>
+</div>
+
+<div class="collapsedpanel">
+  <h2>Section Four</h2>
+  <div class="panelcontent">
+	<p>&nbsp The time is now: <span id="Section Four Time"></span></p>
+  </div>
+</div>
+</body>
+</html>
