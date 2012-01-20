@@ -39,7 +39,7 @@ body { font: 12px Tahoma, Geneva, sans-serif; }
 	border-color: #CCC;
 }
 
-/* panel content - do not set borders or paddings */
+/* panel content */
 .panelcontent 
 { 
 	background: #EEE; 
