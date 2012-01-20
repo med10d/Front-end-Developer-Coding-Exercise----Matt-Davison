@@ -6,7 +6,7 @@ The code uses AJAX to access a server-side PHP script that provides the current 
 
 Files:
 
-accodionwdidget.html -- HTML and JavaScript code
+accordionwidget.html -- HTML and JavaScript code
 styles.css           -- CSS code
 dateandtime.php      -- PHP script for getting date and time
 arrow-down.png       -- image
