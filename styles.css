@@ -1,0 +1,50 @@
+body { font: 12px Tahoma, Geneva, sans-serif; }
+
+/* panel */
+.panel, .collapsedpanel 
+{
+	background: #eee;
+	margin: 5px;
+	padding: 0px 0px 5px;
+	width: 99%;
+	border: 1px solid #999;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+}
+
+/* panel heading */
+.panel h2, .collapsedpanel h2 
+{
+	font-size: 18px;
+	font-weight: normal;
+	margin: 0px;
+	padding: 4px;
+	padding-left: 34px;
+	background: #CCC url(arrow-down.png) no-repeat 10px;
+	border-bottom: 1px solid #999;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-top: 1px solid #FFF;
+	border-right: 1px solid #FFF;
+	border-left: 1px solid #FFF;
+}
+
+/* panel heading on rollover */
+.panel h2:hover, .collapsedpanel h2:hover { background-color: #A9BCEF; }
+
+/* heading of a collapsed panel */
+.collapsedpanel h2 
+{
+	background: #CCC url(arrow-right.png) no-repeat 10px;
+	border-color: #CCC;
+}
+
+/* panel content - do not set borders or paddings */
+.panelcontent 
+{ 
+	background: #EEE; 
+	overflow: hidden;
+}
+
+/* collapsed panel content */
+.collapsedpanel .panelcontent { display: none; }
